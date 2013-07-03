@@ -42,7 +42,7 @@
 #'@examples
 #'
 #'  \dontrun{
-#'   
+#'
 #'  # number of cases
 #'  cases = 500
 #'
@@ -68,12 +68,12 @@
 #'
 CALPHA <-
 function(y, X, perm=NULL)
-{  
+{
   ## checking arguments
   if (!is.null(perm))
   {
     if (mode(perm) != "numeric" || length(perm) != 1
-        || perm < 0 || (perm %% 1) !=0) 
+        || perm < 0 || (perm %% 1) !=0)
     {
       warning("Argument 'perm' incorrectly defined. Value perm=100 is used")
       perm = 100
@@ -83,7 +83,7 @@ function(y, X, perm=NULL)
   y = Xy_perm$y
   X = Xy_perm$X
   perm = Xy_perm$perm
-  
+
   # how many cases
   nA = sum(y)
   # how many controls
@@ -96,8 +96,8 @@ function(y, X, perm=NULL)
   n = apply(X, 2, function(x) sum(x>0, na.rm=TRUE))
   # copies of the i-th variant type in the cases
   g = apply(X[y==1,], 2, function(x) sum(x>0, na.rm=TRUE))
-  
-  # Test statistic 
+
+  # Test statistic
   calpha.stat = my_calpha_method(y, X)
   # Variance of Talpha
   Valpha = 0
@@ -109,11 +109,11 @@ function(y, X, perm=NULL)
   names(Valpha) = NULL
   # Z score
   Zscore = calpha.stat / sqrt(Valpha)
-  
+
   # asymptotic p-vaue
   if (Valpha==0) asym.pval=1 else
-    asym.pval = 1 - pchisq(calpha.stat^2 / Valpha, df=1)
-  
+    asym.pval = 1 - pnorm(Zscore)
+
   # permutations
   perm.pval = NA
   if (perm != 0)
@@ -122,22 +122,21 @@ function(y, X, perm=NULL)
     for (i in 1:perm)
     {
       perm.sample = sample(1:length(y))
-      x.perm[i] = my_calpha_method(y[perm.sample], X) 
+      x.perm[i] = my_calpha_method(y[perm.sample], X)
     }
-    # p-value 
-    perm.pval = sum(x.perm^2 > calpha.stat^2) / perm
-  }	  
-  
+    # p-value
+    perm.pval = sum(x.perm > calpha.stat) / perm
+  }
+
   ## results
   name = "CALPHA: c-alpha Test"
   arg.spec = c(sum(y), length(y)-sum(y), ncol(X), perm)
   names(arg.spec) = c("cases", "controls", "variants", "n.perms")
-  res = list(calpha.stat = calpha.stat, 
-             asym.pval = asym.pval, 
-             perm.pval = perm.pval, 
-             args = arg.spec, 
+  res = list(calpha.stat = calpha.stat,
+             asym.pval = asym.pval,
+             perm.pval = perm.pval,
+             args = arg.spec,
              name = name)
-  class(res) = "assoctest"	
+  class(res) = "assoctest"
   return(res)
 }
-
